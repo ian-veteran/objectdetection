@@ -46,9 +46,7 @@ function Carousel({ images }) {
               }
             >
               <img className="card_image" src={image.image} alt="" />
-              <div className="card_overlay">
-                <h2 className="card_title"> {image.title}</h2>
-              </div>
+              
             </div>
           );
         })}

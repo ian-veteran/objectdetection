@@ -5,6 +5,11 @@
 body {
   margin: 0;
 }
+
+.app {
+width: 100%;
+
+}
 /*-------------Navigation Bar-------------*/
 .nav {
   background-color: #000000;
