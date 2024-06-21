@@ -1,41 +1,98 @@
-import React from 'react';
-import './LoginSignup.css';
-import { useState } from 'react';
+import React, { useEffect } from "react";
+import "./LoginSignup.css";
+import { useState } from "react";
+import { useAuth } from "../../context/BlankAuthContext";
+import { useNavigate } from "react-router-dom";
 
 //import user_icon from '../Assets'
 const LoginSignup = () => {
+  const [action, setAction] = useState("Login");
+  const [email, setEmail] = useState("blankscope@gmail.com");
+  const [password, setPassword] = useState("qwerty");
 
-    const [action,setAction] = useState("Login");
+  const { login, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
-    return (
-        <div className='container'>
-            <div className="header">
-                <div className="text">{action}</div>
-                <div className="underline"></div>
-            </div>
+  function handleSubmit(e) {
+    e.preventDefault();
 
-            <div className="inputs">
-                {action==="Login"?<div></div>:<div className="input">
-                    <i className="fas fa-user"></i>
-                    <input type="text" placeholder="Username" />
-                </div>}
-                
-                <div className="input">
-                     <i className="fas fa-envolope"></i>
-                    <input type="email" placeholder="Email" />
-                </div>
-                <div className="input">
-                    <i className="fas fa-lock"></i>
-                    <input type="password" placeholder="Password" />
-                </div>
-            </div>
-            {action==="Sign Up"?<div></div>:<div className="forgot-password">Lost Password <span>Click Here</span></div>}
-            <div className="submit-container">
-                <div className={action==="Login"?"submit gray":"submit"} onClick={()=>{setAction("Sign Up")}}> Sign Up </div>
-                <div className={action==="Sign Up"?"submit gray":"submit"} onClick={()=>{setAction("Login")}}> Login </div>
-            </div>         
+    if (email && password) login(email, password);
+  }
+
+  useEffect(
+    function () {
+      if (isAuthenticated) navigate("/app", { replace: true });
+    },
+    [isAuthenticated, navigate]
+  );
+
+  return (
+    <form className="container" onSubmit={handleSubmit}>
+      <div className="header">
+        <div className="text">{action}</div>
+        <div className="underline"></div>
+      </div>
+
+      <div className="inputs">
+        {action === "Login" ? (
+          <div></div>
+        ) : (
+          <div className="input">
+            <i className="fas fa-user"></i>
+            <input type="text" placeholder="Username" />
+          </div>
+        )}
+
+        <div className="input">
+          <i className="fas fa-envolope"></i>
+          <input
+            type="email"
+            id="email"
+            placeholder="Email"
+            onChange={(e) => setEmail(e.target.value)}
+            value={email}
+          />
         </div>
-    )
-}
+        <div className="input">
+          <i className="fas fa-lock"></i>
+          <input
+            type="password"
+            id="password"
+            placeholder="Password"
+            onChange={(e) => setPassword(e.target.value)}
+            value={password}
+          />
+        </div>
+      </div>
+      {action === "Sign Up" ? (
+        <div></div>
+      ) : (
+        <div className="forgot-password">
+          Lost Password <span>Click Here</span>
+        </div>
+      )}
+      <div className="submit-container">
+        {/*<div
+          className={action === "Login" ? "submit gray" : "submit"}
+          onClick={() => {
+            setAction("Sign Up");
+          }}
+        >
+          {" "}
+          Sign Up{" "}
+        </div>*/}
+        <button
+          className={action === "Sign Up" ? "submit gray" : "submit"}
+          onClick={() => {
+            setAction("Login");
+          }}
+        >
+          {" "}
+          Login{" "}
+        </button>
+      </div>
+    </form>
+  );
+};
 
-export default LoginSignup
+export default LoginSignup;

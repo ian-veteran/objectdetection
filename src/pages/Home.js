@@ -1,4 +1,3 @@
-/*import { ObjectDetector } from "../components/objectDetection";*/
 import MainContainer from "../components/MainContainer";
 import PageNav from "../components/PageNav";
 
@@ -7,7 +6,7 @@ function Home() {
     <div className="home">
       <PageNav />
       <MainContainer />
-      
+          
     </div>
   );
 }

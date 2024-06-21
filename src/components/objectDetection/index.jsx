@@ -1,20 +1,15 @@
-import React, { useEffect, useRef, useState } from "react";
-import styled from "styled-components";
-/*
-import "@tensorflow/tfjs-backend-cpu";
-import "@tensorflow/tfjs-backend-webgl";
-import * as cocoSsd from "@tensorflow-models/coco-ssd";
-import * as tf from "@tensorflow/tfjs";
-*/
+import React, { useState, useRef } from 'react';
+import axios from 'axios';
+import styled from 'styled-components';
+
 const ObjectDetectorContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 15px;
   border: 3px solid #00ff00;
-  width: 500px;
-  height: 500px;
-  margin-left: 400px;
+  width: 100%;
+  height: 100%;
   
 `;
 
@@ -60,12 +55,10 @@ const SelectButton = styled.div`
 
 const TargetBox = styled.div`
   position: absolute;
-
   left: ${({ x }) => x + "px"};
   top: ${({ y }) => y + "px"};
   width: ${({ width }) => width + "px"};
   height: ${({ height }) => height + "px"};
-
   border: 4px solid #1ac71a;
   background-color: transparent;
   z-index: 20;
@@ -81,37 +74,14 @@ const TargetBox = styled.div`
   }
 `;
 
-export function ObjectDetector(props) {
+export function ObjectDetector() {
   const [imgData, setImgData] = useState(null);
-  const [model, setModel] = useState();
   const imgRef = useRef();
   const fileInputRef = useRef();
   const [predictions, setPredictions] = useState([]);
-  const [isloading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const isEmptyPrediction = !predictions || predictions.length === 0;
-
-  /*useEffect(
-    function () {
-      async function tenModel() {
-        try {
-          const res = await tf.loadLayersModel("/model.json");
-          console.log("Response was a success");
-
-          if (!res.ok)
-            throw new Error("Something went wrong with fetching the model.");
-
-          const data = await res.json();
-          setModel(data.Search);
-        } catch (err) {
-          console.error(err.message);
-        }
-      }
-
-      tenModel();
-    },
-    [setModel]
-  );*/
 
   const openFilePicker = () => {
     if (fileInputRef.current) fileInputRef.current.click();
@@ -139,19 +109,21 @@ export function ObjectDetector(props) {
   };
 
   const detectObjectsOnImage = async (imageElement, imgSize) => {
-    /*const model = await cocoSsd.load({});*/
-    const predictions = await model.detect(imageElement, 6);
-    const normalizedPredictions = normalizePredictions(predictions, imgSize);
-    setPredictions(normalizedPredictions);
-    console.log("predictions:", predictions);
-  };
+    try {
+      const formData = new FormData();
+      formData.append('file', fileInputRef.current.files[0]);
 
-  /*const detectObjectsOnImage = async (imageElement, imgSize) => {
-    const predictions = await model.detect(imageElement, 6);
-    const normalizedPredictions = normalizePredictions(predictions, imgSize);
-    setPredictions(normalizedPredictions);
-    console.log("predictions:", predictions);
-  };*/
+      const response = await axios.post('http://127.0.0.1:5000/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      const { predictions } = response.data;
+      const normalizedPredictions = normalizePredictions(predictions, imgSize);
+      setPredictions(normalizedPredictions);
+    } catch (error) {
+      console.error('Error detecting objects:', error);
+    }
+  };
 
   const readImage = (file) => {
     return new Promise((resolve, reject) => {
@@ -206,7 +178,7 @@ export function ObjectDetector(props) {
         onChange={onSelectImage}
       />
       <SelectButton onClick={openFilePicker}>
-        {isloading ? "Recognizing..." : "Select Image"}
+        {isLoading ? "Recognizing..." : "Select Image"}
       </SelectButton>
     </ObjectDetectorContainer>
   );
