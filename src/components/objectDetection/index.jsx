@@ -1,6 +1,7 @@
-import React, { useState, useRef } from 'react';
-import axios from 'axios';
-import styled from 'styled-components';
+import React, { useState, useRef } from "react";
+import axios from "axios";
+import styled from "styled-components";
+import Spinner from "../Spinner";
 
 const ObjectDetectorContainer = styled.div`
   display: flex;
@@ -10,7 +11,6 @@ const ObjectDetectorContainer = styled.div`
   border: 3px solid #00ff00;
   width: 100%;
   height: 100%;
-  
 `;
 
 const DetectorContainer = styled.div`
@@ -22,12 +22,19 @@ const DetectorContainer = styled.div`
   align-items: center;
   justify-content: center;
   position: relative;
-  background-color: green;
+  background-color: black;
 `;
 
 const TargetImg = styled.img`
   height: 100%;
   max-width: 100%;
+  display: ${({ isLoading }) => (isLoading ? "none" : "block")};
+`;
+
+const PlaceholderImg = styled.img`
+  height: 100%;
+  max-width: 100%;
+  display: ${({ isLoading }) => (isLoading ? "block" : "none")};
 `;
 
 const HiddenFileInput = styled.input`
@@ -80,8 +87,10 @@ export function ObjectDetector() {
   const fileInputRef = useRef();
   const [predictions, setPredictions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [delayEnded, setDelayEnded] = useState(false);
 
   const isEmptyPrediction = !predictions || predictions.length === 0;
+  const placeholderImage = "/slide4.jpeg";
 
   const openFilePicker = () => {
     if (fileInputRef.current) fileInputRef.current.click();
@@ -111,17 +120,21 @@ export function ObjectDetector() {
   const detectObjectsOnImage = async (imageElement, imgSize) => {
     try {
       const formData = new FormData();
-      formData.append('file', fileInputRef.current.files[0]);
+      formData.append("file", fileInputRef.current.files[0]);
 
-      const response = await axios.post('http://127.0.0.1:5000/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      const response = await axios.post(
+        "http://127.0.0.1:5000/upload",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
 
       const { predictions } = response.data;
       const normalizedPredictions = normalizePredictions(predictions, imgSize);
       setPredictions(normalizedPredictions);
     } catch (error) {
-      console.error('Error detecting objects:', error);
+      console.error("Error detecting objects:", error);
     }
   };
 
@@ -151,14 +164,25 @@ export function ObjectDetector() {
         height: imageElement.height,
       };
       await detectObjectsOnImage(imageElement, imgSize);
-      setIsLoading(false);
+      setTimeout(() => {
+        // Delay for showing the spinner
+        setIsLoading(false);
+        setDelayEnded(true);
+      }, 2000);
     };
   };
 
   return (
     <ObjectDetectorContainer>
+      {/*<SelectButton onClick={openFilePicker}>
+        {isLoading && !delayEnded ? "Recognizing..." : "Select Image"}
+  </SelectButton>*/}
       <DetectorContainer>
-        {imgData && <TargetImg src={imgData} ref={imgRef} />}
+        {isLoading && !delayEnded && <Spinner />}
+        {isLoading && !delayEnded && (
+          <PlaceholderImg src={placeholderImage} isLoading={isLoading} />
+        )}
+        {imgData && delayEnded && <TargetImg src={imgData} ref={imgRef} />}
         {!isEmptyPrediction &&
           predictions.map((prediction, idx) => (
             <TargetBox
@@ -177,9 +201,6 @@ export function ObjectDetector() {
         ref={fileInputRef}
         onChange={onSelectImage}
       />
-      <SelectButton onClick={openFilePicker}>
-        {isLoading ? "Recognizing..." : "Select Image"}
-      </SelectButton>
     </ObjectDetectorContainer>
   );
 }
