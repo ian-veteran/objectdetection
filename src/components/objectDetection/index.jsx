@@ -76,7 +76,7 @@ const TargetBox = styled.div`
   }
 `;
 
-export function ObjectDetector() {
+export function ObjectDetector({ setCellsCount }) {
   const [imgData, setImgData] = useState(null);
   const imgRef = useRef();
   const fileInputRef = useRef();
@@ -139,8 +139,12 @@ export function ObjectDetector() {
           predictions,
           imgSize
         );
+        const{length} = normalizedPredictions;
+        
         console.log("Normalized predictions:", normalizedPredictions);
+        
         setPredictions(normalizedPredictions);
+        setCellsCount(length);
       };
 
       reader.readAsDataURL(file); // This will trigger the onloadend event
@@ -161,6 +165,8 @@ export function ObjectDetector() {
   const onSelectImage = async (e) => {
     setPredictions([]);
     setIsLoading(true);
+    setCellsCount("  ");
+    setDelayEnded(false);
 
     const file = e.target.files[0];
     const imgData = await readImage(file);

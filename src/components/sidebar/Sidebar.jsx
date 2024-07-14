@@ -1,12 +1,11 @@
 import "./sidebar.css";
 
-function Sidebar() {
+function Sidebar({ cellsCount }) {
   return (
     <div className="sidebar">
       <p className="sidebarResultTitle">Results</p>
       <ul className="sidebarResults">
-        <li>Cells detected : 6</li>
-        <li>Detected % : 78%</li>
+        <li>Cells detected : {cellsCount} </li>
       </ul>
     </div>
   );
