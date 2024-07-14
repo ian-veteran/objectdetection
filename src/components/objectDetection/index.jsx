@@ -3,6 +3,7 @@ import axios from "axios";
 import styled from "styled-components";
 import Spinner from "../Spinner";
 
+
 const ObjectDetectorContainer = styled.div`
   display: flex;
   flex-direction: column;
