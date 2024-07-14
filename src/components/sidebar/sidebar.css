@@ -1,0 +1,19 @@
+.sidebar {
+    height: 100%;
+    flex: 3;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin-top: 20px;
+    
+}
+
+.sidebarResultTitle {
+    font-family: "Josefin Sans", sans-serif;
+    font-size: 40px;
+}
+
+.sidebarResults {
+    list-style: none;
+    font-family: "Poppins", sans-serif;
+}

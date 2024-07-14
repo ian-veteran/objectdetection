@@ -8,33 +8,26 @@ const ObjectDetectorContainer = styled.div`
   flex-direction: column;
   align-items: center;
   padding: 15px;
-  border: 3px solid #00ff00;
   width: 100%;
   height: 100%;
+  flex: 9;
 `;
 
 const DetectorContainer = styled.div`
-  min-width: 200px;
-  height: 500px;
+  min-width: 400px;
+  height: 400px;
   border: 3px solid #fff;
   border-radius: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  background-color: black;
 `;
 
 const TargetImg = styled.img`
   height: 100%;
   max-width: 100%;
   display: ${({ isLoading }) => (isLoading ? "none" : "block")};
-`;
-
-const PlaceholderImg = styled.img`
-  height: 100%;
-  max-width: 100%;
-  display: ${({ isLoading }) => (isLoading ? "block" : "none")};
 `;
 
 const HiddenFileInput = styled.input`
@@ -52,6 +45,7 @@ const SelectButton = styled.div`
   margin-top: 2em;
   cursor: pointer;
   transition: all 260ms ease-in-out;
+  border-radius: 10px;
 
   &:hover {
     background-color: transparent;
@@ -71,8 +65,9 @@ const TargetBox = styled.div`
   z-index: 20;
 
   &::before {
-    content: "${({ classType, score }) => `${classType} ${score.toFixed(2)}`}";
-    color: #1ac71a;
+    content: "${({ classType, score }) =>
+      `${classType} ${score.toFixed(2) * 100}%`}";
+    color: #000000;
     font-weight: 500;
     font-size: 17px;
     position: absolute;
@@ -90,49 +85,65 @@ export function ObjectDetector() {
   const [delayEnded, setDelayEnded] = useState(false);
 
   const isEmptyPrediction = !predictions || predictions.length === 0;
-  const placeholderImage = "/slide4.jpeg";
 
   const openFilePicker = () => {
     if (fileInputRef.current) fileInputRef.current.click();
   };
 
   const normalizePredictions = (predictions, imgSize) => {
-    if (!predictions || !imgSize || !imgRef) return [];
+    if (!predictions || !imgSize || !imgRef.current) return [];
     return predictions.map((prediction) => {
-      const { bbox } = prediction;
-      const oldX = bbox[0];
-      const oldY = bbox[1];
-      const oldWidth = bbox[2];
-      const oldHeight = bbox[3];
+      const { x, y, width, height } = prediction;
 
       const imgWidth = imgRef.current.width;
       const imgHeight = imgRef.current.height;
 
-      const x = (oldX * imgWidth) / imgSize.width;
-      const y = (oldY * imgHeight) / imgSize.height;
-      const width = (oldWidth * imgWidth) / imgSize.width;
-      const height = (oldHeight * imgHeight) / imgSize.height;
+      const normalizedX = (x * imgWidth) / imgSize.width;
+      const normalizedY = (y * imgHeight) / imgSize.height;
+      const normalizedWidth = (width * imgWidth) / imgSize.width;
+      const normalizedHeight = (height * imgHeight) / imgSize.height;
 
-      return { ...prediction, bbox: [x, y, width, height] };
+      return {
+        ...prediction,
+        bbox: [normalizedX, normalizedY, normalizedWidth, normalizedHeight],
+      };
     });
   };
 
   const detectObjectsOnImage = async (imageElement, imgSize) => {
     try {
-      const formData = new FormData();
-      formData.append("file", fileInputRef.current.files[0]);
+      console.log("Starting object detection...");
+      const file = fileInputRef.current.files[0];
+      console.log("Selected file:", file);
+      const reader = new FileReader();
 
-      const response = await axios.post(
-        "http://127.0.0.1:5000/upload",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      reader.onloadend = async () => {
+        const base64Image = reader.result.split(",")[1]; // Get base64 part of the data URL
+        console.log("Base64 image data:", base64Image);
 
-      const { predictions } = response.data;
-      const normalizedPredictions = normalizePredictions(predictions, imgSize);
-      setPredictions(normalizedPredictions);
+        const response = await axios({
+          method: "POST",
+          url: "https://detect.roboflow.com/lukemia-yrytc/1",
+          params: {
+            api_key: "YLK6lMqxJmuCDufEJYAR",
+          },
+          data: base64Image,
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        });
+
+        console.log("API response:", response.data);
+        const { predictions } = response.data;
+        const normalizedPredictions = normalizePredictions(
+          predictions,
+          imgSize
+        );
+        console.log("Normalized predictions:", normalizedPredictions);
+        setPredictions(normalizedPredictions);
+      };
+
+      reader.readAsDataURL(file); // This will trigger the onloadend event
     } catch (error) {
       console.error("Error detecting objects:", error);
     }
@@ -172,17 +183,46 @@ export function ObjectDetector() {
     };
   };
 
+  const toggleFullScreen = (element) => {
+    if (!document.fullscreenElement) {
+      if (element.requestFullscreen) {
+        element.requestFullscreen();
+      } else if (element.mozRequestFullScreen) {
+        element.mozRequestFullScreen();
+      } else if (element.webkitRequestFullscreen) {
+        element.webkitRequestFullscreen();
+      } else if (element.msRequestFullscreen) {
+        element.msRequestFullscreen();
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.mozCancelFullScreen) {
+        document.mozCancelFullScreen();
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      } else if (document.msExitFullscreen) {
+        document.msExitFullscreen();
+      }
+    }
+  };
+
+  
+
   return (
     <ObjectDetectorContainer>
-      {/*<SelectButton onClick={openFilePicker}>
-        {isLoading && !delayEnded ? "Recognizing..." : "Select Image"}
-  </SelectButton>*/}
+      <SelectButton onClick={openFilePicker}>
+        {isLoading && !delayEnded ? "Recognizing..." : "AI Image Analysis"}
+      </SelectButton>
       <DetectorContainer>
         {isLoading && !delayEnded && <Spinner />}
-        {isLoading && !delayEnded && (
-          <PlaceholderImg src={placeholderImage} isLoading={isLoading} />
+        {imgData && delayEnded && (
+          <TargetImg
+            src={imgData}
+            ref={imgRef}
+            onDoubleClick={() => toggleFullScreen(imgRef.current)}
+          />
         )}
-        {imgData && delayEnded && <TargetImg src={imgData} ref={imgRef} />}
         {!isEmptyPrediction &&
           predictions.map((prediction, idx) => (
             <TargetBox
@@ -192,7 +232,7 @@ export function ObjectDetector() {
               width={prediction.bbox[2]}
               height={prediction.bbox[3]}
               classType={prediction.class}
-              score={prediction.score}
+              score={prediction.confidence}
             />
           ))}
       </DetectorContainer>

@@ -4,8 +4,12 @@ export const slides = [
     title: "Image1",
   },
   {
-    image: "microscope.png",
-    title: "Image2",
+    image: "blankscope3.jpeg",
+    title: "Image3",
+  },
+  {
+    image: "blankscope4.jpeg",
+    title: "Image4",
   },
   
 ];

@@ -44,6 +44,7 @@ const LoginSignup = () => {
         )}
 
         <div className="input">
+          <span>Email:</span>
           <i className="fas fa-envolope"></i>
           <input
             type="email"
@@ -54,11 +55,22 @@ const LoginSignup = () => {
           />
         </div>
         <div className="input">
+          <span>Password:</span>
           <i className="fas fa-lock"></i>
           <input
             type="password"
             id="password"
             placeholder="Password"
+            onChange={(e) => setPassword(e.target.value)}
+            value={password}
+          />
+        </div>
+        <div className="input">
+          <span>Serial no:</span>
+          <input
+            type="password"
+            id="password"
+            placeholder="Serial No:"
             onChange={(e) => setPassword(e.target.value)}
             value={password}
           />
