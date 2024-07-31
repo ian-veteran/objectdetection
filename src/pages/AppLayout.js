@@ -6,6 +6,8 @@ import Sidebar from "../components/sidebar/Sidebar";
 function AppLayout() {
   const [navChange, setNavChange] = useState("");
   const [cellsCount, setCellsCount] = useState("");
+  const [sideBarAct, setSideBarAct] = useState(false);
+
   console.log("length of cells:", cellsCount);
   return (
     <div className="app">
@@ -15,8 +17,9 @@ function AppLayout() {
           navChange={navChange}
           setNavChange={setNavChange}
           setCellsCount={setCellsCount}
+          setSideBarAct={setSideBarAct}
         />
-        <Sidebar cellsCount={cellsCount} />
+        { sideBarAct && <Sidebar cellsCount={cellsCount}/>}
       </div>
     </div>
   );
